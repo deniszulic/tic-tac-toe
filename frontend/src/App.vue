@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <h1>Tic Tac Toe</h1>
+    <!-- <h2 v-if="uniqueid">{{uniqueid}}</h2> -->
     <div class="play-area">
       <div id="block_0" class="block" @click="draw(0, false)">
         {{ content[0] }}
@@ -40,7 +41,7 @@
       data-target="#exampleModal"
       style="margin-top: 10px"
     >
-      Upiši gameid
+      Gameid
     </button>
     <div
       class="modal fade"
@@ -64,7 +65,12 @@
             </button>
           </div>
           <div class="modal-body">
-            <input type="number" class="form-control" placeholder="Enter gameid" v-model="gameid">
+            <input
+              type="number"
+              class="form-control"
+              placeholder="Enter gameid"
+              v-model="gameid"
+            />
           </div>
           <div class="modal-footer">
             <button
@@ -72,9 +78,64 @@
               class="btn btn-secondary"
               data-dismiss="modal"
             >
-              Zatvori
+              Close
             </button>
-            <button type="submit" class="btn btn-primary" @click="setgameid">Spremi</button>
+            <button type="submit" class="btn btn-primary" @click="setgameid">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-toggle="modal"
+      data-target="#historymodal"
+      style="margin-top: 10px"
+    >
+      Search games by id
+    </button>
+    <div
+      class="modal fade"
+      id="historymodal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">GameId</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Enter gameid"
+              v-model="id"
+            />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="submit" class="btn btn-primary" @click="gamehistory">
+              Save
+            </button>
           </div>
         </div>
       </div>
@@ -95,7 +156,9 @@ export default {
       isover: false,
       winner: null,
       istie: false,
-      gameid: null
+      gameid: null,
+      alldata: [],
+      id: "",
     };
   },
   methods: {
@@ -113,6 +176,16 @@ export default {
       this.calculatewinner();
       if (this.winner == null) {
         this.calculatetie();
+      }
+      if (this.winner != null || this.istie) {
+        socket.emit(
+          "data",
+          this.content,
+          this.winner,
+          this.istie,
+          this.gameid,
+          this.isover
+        );
       }
     },
     calculatewinner() {
@@ -165,20 +238,41 @@ export default {
       }
       this.istie = true;
     },
-    setgameid(){
-      socket.emit("gameid", this.gameid)
-    }
+    setgameid() {
+      socket.emit("gameid", this.gameid);
+    },
+    gamehistory() {
+      // eslint-disable-next-line no-unused-vars
+      for (let [i, x] of this.alldata.entries()) {
+        if (x.uniqueid == this.id) {
+          console.log(x.content);
+          this.content = x.content;
+          this.winner = x.winner;
+          this.istie = x.istie;
+          this.isover = x.isover;
+        }
+      }
+    },
   },
   created() {
     socket.on("play", (index) => {
       this.draw(index, true);
     });
     socket.on("reset", (gameid, isover, winner, istie, content) => {
-      this.gameid=gameid;
+      this.gameid = gameid;
       this.istie = istie;
       this.isover = isover;
       this.winner = winner;
       this.content = content;
+    });
+    socket.on("data", (content, winner, istie, uniqueid, isover) => {
+      let a = {};
+      a.content = content;
+      a.winner = winner;
+      a.istie = istie;
+      a.uniqueid = uniqueid;
+      a.isover = isover;
+      this.alldata.push(a);
     });
   },
 };
