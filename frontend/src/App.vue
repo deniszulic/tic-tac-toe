@@ -33,6 +33,52 @@
     <h2 id="winner" v-if="winner">Winner is {{ winner }}</h2>
     <h2 v-if="istie">Tie</h2>
     <button @click="resetboard()" v-if="isover || istie">RESET</button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-toggle="modal"
+      data-target="#exampleModal"
+      style="margin-top: 10px"
+    >
+      Upiši gameid
+    </button>
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">GameId</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input type="number" class="form-control" placeholder="Enter gameid" v-model="gameid">
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Zatvori
+            </button>
+            <button type="submit" class="btn btn-primary" @click="setgameid">Spremi</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -49,6 +95,7 @@ export default {
       isover: false,
       winner: null,
       istie: false,
+      gameid: null
     };
   },
   methods: {
@@ -61,7 +108,7 @@ export default {
         this.turn = !this.turn;
       }
       if (!drawfromother) {
-        socket.emit("play", index);
+        socket.emit("play", index, this.gameid);
       }
       this.calculatewinner();
       if (this.winner == null) {
@@ -100,12 +147,15 @@ export default {
       this.isover = false;
       this.winner = null;
       this.istie = false;
-      // socket.emit("isover", this.isover)
-      // socket.emit("winner", this.winner)
-      // socket.emit("istie", this.istie)
-      // socket.emit("content", ["", "", "", "", "", "", "", "", ""])
 
-      socket.emit("reset", this.isover, this.winner, this.istie, new Array(9).fill(""));
+      socket.emit(
+        "reset",
+        this.gameid,
+        this.isover,
+        this.winner,
+        this.istie,
+        new Array(9).fill("")
+      );
     },
     calculatetie() {
       for (let i = 0; i <= 8; i++) {
@@ -115,24 +165,16 @@ export default {
       }
       this.istie = true;
     },
+    setgameid(){
+      socket.emit("gameid", this.gameid)
+    }
   },
   created() {
     socket.on("play", (index) => {
       this.draw(index, true);
     });
-    // socket.on("isover", (isover) => {
-    //   this.isover=isover
-    // });
-    // socket.on("winner", (winner) => {
-    //   this.winner=winner
-    // });
-    // socket.on("istie", (istie) => {
-    //   this.istie=istie
-    // });
-    // socket.on("content", (content) => {
-    //   this.content=content
-    // });
-    socket.on("reset", (isover, winner, istie, content) => {
+    socket.on("reset", (gameid, isover, winner, istie, content) => {
+      this.gameid=gameid;
       this.istie = istie;
       this.isover = isover;
       this.winner = winner;
