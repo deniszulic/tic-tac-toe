@@ -1,10 +1,10 @@
+const { checkPrime } = require('crypto');
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { v4: uuidv4 } = require('uuid');
 
-let data = {}
 let array = []
 let counter = 0
 
@@ -20,9 +20,8 @@ const io = require('socket.io')(server, {
 })
 
 io.on('connection', (socket) => {
-    //console.log(io.sockets.adapter.rooms)
     socket.emit("hello", "world");
-    //console.log(socket.id)
+    socket.emit("socket", socket.id)
     socket.on("play", (index, gameid) => {
         socket.broadcast.to(gameid).emit("play", index)
     })
@@ -30,11 +29,39 @@ io.on('connection', (socket) => {
         socket.broadcast.to(gameid).emit("reset", gameid, isover, winner, istie, content)
     })
     socket.on("gameid", gameid => {
-        socket.join(gameid)
+        var data = new Object();
+        data.gameid = gameid
+        data.socketid = socket.id
+        array.push(data)
+
+        var valueArr = array.map(function (item) { return item.gameid });
+        const counts = {};
+        valueArr.forEach(function (x) { counts[x] = (counts[x] || 0) + 1; });
+        for (const [key, value] of Object.entries(counts)) {
+            //console.log(`${key}: ${value}`);
+            if (key == gameid.toString() && value <= 2) {
+                socket.join(gameid)
+            }
+            else if (value > 2) {
+                //array.splice(objindex, 1);
+                array.pop()
+                console.log("Too many players")
+            }
+        }
+        socket.broadcast.to(gameid).emit("socket", socket.id)
     })
-    socket.on("disconnecting", () => {
-        //console.log("User Disconnected");
-        //console.log("socket room ",socket.rooms);
+    // socket.on("check", (check, gameid) => {
+    //     console.log(check)
+    //     socket.broadcast.to(gameid).emit("check", check);
+    // })
+    socket.on("socketid", (played, gameid) => {
+        socket.broadcast.to(gameid).emit("socketid", played);
+    })
+    socket.on("disconnect", () => {
+        const objindex = array.findIndex(object => {
+            return object.socketid == socket.id;
+        });
+        array.splice(objindex, 1);
     });
 
     socket.on("data", (content, winner, istie, gameid, isover) => {

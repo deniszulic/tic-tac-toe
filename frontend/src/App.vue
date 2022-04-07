@@ -80,7 +80,12 @@
             >
               Close
             </button>
-            <button type="submit" class="btn btn-primary" @click="setgameid">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              data-dismiss="modal"
+              @click="setgameid"
+            >
               Save
             </button>
           </div>
@@ -133,7 +138,12 @@
             >
               Close
             </button>
-            <button type="submit" class="btn btn-primary" @click="gamehistory">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              data-dismiss="modal"
+              @click="gamehistory"
+            >
               Save
             </button>
           </div>
@@ -152,6 +162,7 @@ export default {
   data() {
     return {
       content: ["", "", "", "", "", "", "", "", ""],
+      played: [],
       turn: true,
       isover: false,
       winner: null,
@@ -159,6 +170,8 @@ export default {
       gameid: null,
       alldata: [],
       id: "",
+      check: true,
+      socketid: null,
     };
   },
   methods: {
@@ -166,12 +179,16 @@ export default {
       if (this.turn && this.content[index] == "" && this.winner == null) {
         this.content[index] = "X";
         this.turn = !this.turn;
+        //this.played.push(this.socketid)
+        //socket.emit("turn", this.turn, this.gameid)
       } else if (this.content[index] == "" && this.winner == null) {
         this.content[index] = "O";
         this.turn = !this.turn;
+        //this.played.push(this.socketid)
       }
       if (!drawfromother) {
         socket.emit("play", index, this.gameid);
+        //socket.emit("socketid", this.played, this.gameid)
       }
       this.calculatewinner();
       if (this.winner == null) {
@@ -250,6 +267,7 @@ export default {
           this.winner = x.winner;
           this.istie = x.istie;
           this.isover = x.isover;
+          break;
         }
       }
     },
@@ -258,6 +276,17 @@ export default {
     socket.on("play", (index) => {
       this.draw(index, true);
     });
+    // socket.on("turn", (turn) => {
+    //   //this.draw(this.turn, this.gameid);
+    //   this.turn=turn
+    // });
+    // socket.on("socketid", (played, gameid) => {
+    //   this.played=played
+    //   this.gameid=gameid
+    // });
+    // socket.on("socket", (socket) => {
+    //   this.socketid=socket
+    // });
     socket.on("reset", (gameid, isover, winner, istie, content) => {
       this.gameid = gameid;
       this.istie = istie;
