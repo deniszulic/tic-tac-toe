@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
         data.gameid = gameid
         data.socketid = socket.id
         array.push(data)
+        //var numClients = io.sockets.clients(gameid).length;
 
         var valueArr = array.map(function (item) { return item.gameid });
         const counts = {};
@@ -44,16 +45,12 @@ io.on('connection', (socket) => {
             }
             else if (value > 2) {
                 //array.splice(objindex, 1);
-                array.pop()
                 console.log("Too many players")
+                array.pop()
             }
         }
-        socket.broadcast.to(gameid).emit("socket", socket.id)
+        //console.log(numClients)
     })
-    // socket.on("check", (check, gameid) => {
-    //     console.log(check)
-    //     socket.broadcast.to(gameid).emit("check", check);
-    // })
     socket.on("socketid", (played, gameid) => {
         socket.broadcast.to(gameid).emit("socketid", played);
     })

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Tic Tac Toe</h1>
-    <!-- <h2 v-if="uniqueid">{{uniqueid}}</h2> -->
+    <h2>{{alldata.slice(-1)}}</h2>
     <div class="play-area">
       <div id="block_0" class="block" @click="draw(0, false)">
         {{ content[0] }}
@@ -162,16 +162,13 @@ export default {
   data() {
     return {
       content: ["", "", "", "", "", "", "", "", ""],
-      played: [],
       turn: true,
       isover: false,
       winner: null,
       istie: false,
       gameid: null,
       alldata: [],
-      id: "",
-      check: true,
-      socketid: null,
+      id: ""
     };
   },
   methods: {
@@ -179,16 +176,12 @@ export default {
       if (this.turn && this.content[index] == "" && this.winner == null) {
         this.content[index] = "X";
         this.turn = !this.turn;
-        //this.played.push(this.socketid)
-        //socket.emit("turn", this.turn, this.gameid)
       } else if (this.content[index] == "" && this.winner == null) {
         this.content[index] = "O";
         this.turn = !this.turn;
-        //this.played.push(this.socketid)
       }
       if (!drawfromother) {
         socket.emit("play", index, this.gameid);
-        //socket.emit("socketid", this.played, this.gameid)
       }
       this.calculatewinner();
       if (this.winner == null) {
@@ -262,7 +255,6 @@ export default {
       // eslint-disable-next-line no-unused-vars
       for (let [i, x] of this.alldata.entries()) {
         if (x.uniqueid == this.id) {
-          console.log(x.content);
           this.content = x.content;
           this.winner = x.winner;
           this.istie = x.istie;
@@ -276,17 +268,6 @@ export default {
     socket.on("play", (index) => {
       this.draw(index, true);
     });
-    // socket.on("turn", (turn) => {
-    //   //this.draw(this.turn, this.gameid);
-    //   this.turn=turn
-    // });
-    // socket.on("socketid", (played, gameid) => {
-    //   this.played=played
-    //   this.gameid=gameid
-    // });
-    // socket.on("socket", (socket) => {
-    //   this.socketid=socket
-    // });
     socket.on("reset", (gameid, isover, winner, istie, content) => {
       this.gameid = gameid;
       this.istie = istie;
