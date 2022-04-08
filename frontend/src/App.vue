@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Tic Tac Toe</h1>
-    <h2>{{alldata.slice(-1)}}</h2>
+    <h2>{{ alldata.slice(-1) }}</h2>
     <div class="play-area">
       <div id="block_0" class="block" @click="draw(0, false)">
         {{ content[0] }}
@@ -77,6 +77,7 @@
               type="button"
               class="btn btn-secondary"
               data-dismiss="modal"
+              @click="close"
             >
               Close
             </button>
@@ -168,35 +169,41 @@ export default {
       istie: false,
       gameid: null,
       alldata: [],
-      id: ""
+      id: "",
+      error: null,
     };
   },
   methods: {
     draw(index, drawfromother) {
-      if (this.turn && this.content[index] == "" && this.winner == null) {
-        this.content[index] = "X";
-        this.turn = !this.turn;
-      } else if (this.content[index] == "" && this.winner == null) {
-        this.content[index] = "O";
-        this.turn = !this.turn;
+      if (this.error == null) {
+        if (this.turn && this.content[index] == "" && this.winner == null) {
+          this.content[index] = "X";
+          this.turn = !this.turn;
+        } else if (this.content[index] == "" && this.winner == null) {
+          this.content[index] = "O";
+          this.turn = !this.turn;
+        }
+        if (!drawfromother) {
+          socket.emit("play", index, this.gameid);
+        }
+        this.calculatewinner();
+        if (this.winner == null) {
+          this.calculatetie();
+        }
+        if (this.winner != null || this.istie) {
+          socket.emit(
+            "data",
+            this.content,
+            this.winner,
+            this.istie,
+            this.gameid,
+            this.isover
+          );
+        }
       }
-      if (!drawfromother) {
-        socket.emit("play", index, this.gameid);
-      }
-      this.calculatewinner();
-      if (this.winner == null) {
-        this.calculatetie();
-      }
-      if (this.winner != null || this.istie) {
-        socket.emit(
-          "data",
-          this.content,
-          this.winner,
-          this.istie,
-          this.gameid,
-          this.isover
-        );
-      }
+    },
+    close() {
+      this.error = null;
     },
     calculatewinner() {
       const WIN_CONDITIONS = [
@@ -274,6 +281,9 @@ export default {
       this.isover = isover;
       this.winner = winner;
       this.content = content;
+    });
+    socket.on("socket", (msg) => {
+      this.error = msg;
     });
     socket.on("data", (content, winner, istie, uniqueid, isover) => {
       let a = {};

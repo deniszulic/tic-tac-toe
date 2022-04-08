@@ -21,7 +21,6 @@ const io = require('socket.io')(server, {
 
 io.on('connection', (socket) => {
     socket.emit("hello", "world");
-    socket.emit("socket", socket.id)
     socket.on("play", (index, gameid) => {
         socket.broadcast.to(gameid).emit("play", index)
     })
@@ -33,7 +32,6 @@ io.on('connection', (socket) => {
         data.gameid = gameid
         data.socketid = socket.id
         array.push(data)
-        //var numClients = io.sockets.clients(gameid).length;
 
         var valueArr = array.map(function (item) { return item.gameid });
         const counts = {};
@@ -46,10 +44,10 @@ io.on('connection', (socket) => {
             else if (value > 2) {
                 //array.splice(objindex, 1);
                 console.log("Too many players")
+                socket.emit("socket", socket.id)
                 array.pop()
             }
         }
-        //console.log(numClients)
     })
     socket.on("socketid", (played, gameid) => {
         socket.broadcast.to(gameid).emit("socketid", played);
