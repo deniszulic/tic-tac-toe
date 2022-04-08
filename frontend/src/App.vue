@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Tic Tac Toe</h1>
-    <h2>{{ alldata.slice(-1) }}</h2>
+    <!-- <h2>{{ alldata.slice(-1) }}</h2> -->
     <div class="play-area">
       <div id="block_0" class="block" @click="draw(0, false)">
         {{ content[0] }}
