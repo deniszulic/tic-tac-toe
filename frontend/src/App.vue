@@ -77,7 +77,6 @@
               type="button"
               class="btn btn-secondary"
               data-dismiss="modal"
-              @click="close"
             >
               Close
             </button>
@@ -201,9 +200,6 @@ export default {
           );
         }
       }
-    },
-    close() {
-      this.error = null;
     },
     calculatewinner() {
       const WIN_CONDITIONS = [
